@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f0e">
+<title>NutriTrack</title>
+<style>
+:root{--bg:#0b0f0e;--card:#151b19;--card2:#1c2421;--text:#f4f7f5;--muted:#9da9a4;--accent:#52d273;--danger:#ff6b6b;--border:#27312d}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.app{max-width:520px;margin:auto;padding:18px 16px 90px}
+h1{font-size:30px;margin:8px 0 4px}.sub{color:var(--muted);margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px;margin:12px 0}
+.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+input,select{width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:13px;font-size:16px;outline:none}
+button{border:0;border-radius:12px;padding:13px 16px;background:var(--accent);color:#071009;font-weight:700;font-size:15px;cursor:pointer}
+button.secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.stat{font-size:27px;font-weight:800}.muted{color:var(--muted);font-size:13px}
+.progress{height:10px;background:#28322e;border-radius:99px;overflow:hidden;margin:10px 0}.bar{height:100%;background:var(--accent);width:0%;transition:.25s}
+.food{padding:13px 0;border-bottom:1px solid var(--border)}.food:last-child{border-bottom:0}
+.badge{font-size:12px;color:var(--accent);background:#15321e;padding:5px 8px;border-radius:8px}
+.section-title{font-size:18px;font-weight:750;margin-bottom:12px}
+.small{font-size:12px;color:var(--muted)}
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,15,14,.94);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:10px;display:flex;justify-content:center;z-index:5}
+nav button{margin:0 5px;padding:10px 15px}
+.hidden{display:none!important}.notice{color:#ffd37a;font-size:12px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>NutriTrack</h1>
+  <div class="sub">Simple calorie & protein tracker</div>
+
+  <section id="home">
+    <div class="card">
+      <div class="section-title">Today's calories</div>
+      <div class="row"><div><div class="stat" id="calNow">0</div><div class="muted">consumed</div></div>
+      <div style="text-align:right"><div class="stat" id="calGoal">1800</div><div class="muted">goal kcal</div></div></div>
+      <div class="progress"><div class="bar" id="calBar"></div></div>
+      <div class="small" id="calRemain">1800 kcal remaining</div>
+    </div>
+
+    <div class="grid">
+      <div class="card"><div class="muted">Protein</div><div class="stat" id="proteinNow">0 g</div><div class="small" id="proteinGoal">Goal 120 g</div></div>
+      <div class="card"><div class="muted">BMI</div><div class="stat" id="bmi">--</div><div class="small" id="bmiText">Add profile</div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Today's food</div>
+      <div id="todayFood"><div class="muted">No food added yet.</div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Quick add</div>
+      <button onclick="showAdd()">+ Add food</button>
+    </div>
+  </section>
+
+  <section id="add" class="hidden">
+    <div class="card">
+      <div class="section-title">Add food</div>
+      <input id="search" placeholder="Search egg, rice, dosa..." oninput="renderFoods()">
+      <div id="foodList"></div>
+    </div>
+    <div id="quantityBox" class="card hidden">
+      <div class="section-title" id="selectedName"></div>
+      <label>Quantity / servings</label>
+      <input id="qty" type="number" min="0.1" step="0.1" value="1">
+      <div class="small" id="selectedInfo" style="margin:10px 0 14px"></div>
+      <button onclick="confirmFood()">Add to today</button>
+    </div>
+  </section>
+
+  <section id="profile" class="hidden">
+    <div class="card">
+      <div class="section-title">Your profile</div>
+      <div class="grid">
+        <div><label>Age</label><input id="age" type="number" value="19"></div>
+        <div><label>Gender</label><select id="gender"><option value="male">Male</option><option value="female">Female</option></select></div>
+        <div><label>Height (cm)</label><input id="height" type="number" value="170"></div>
+        <div><label>Weight (kg)</label><input id="weight" type="number" value="85"></div>
+      </div>
+      <div style="margin-top:12px"><label>Activity</label>
+        <select id="activity">
+          <option value="1.2">Mostly sitting</option>
+          <option value="1.375">Lightly active</option>
+          <option value="1.55">Moderately active</option>
+          <option value="1.725">Very active</option>
+        </select>
+      </div>
+      <div style="margin-top:14px"><label>Goal</label>
+        <select id="goal">
+          <option value="loss">Lose weight</option>
+          <option value="maintain">Maintain weight</option>
+          <option value="gain">Gain weight</option>
+        </select>
+      </div>
+      <button style="margin-top:15px" onclick="saveProfile()">Save profile</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Your targets</div>
+      <div class="row"><span>Daily calories</span><strong id="targetDisplay">1800 kcal</strong></div>
+      <div class="row" style="margin-top:10px"><span>Protein target</span><strong id="proteinDisplay">120 g</strong></div>
+      <p class="notice">Calorie and protein targets are estimates, not medical advice. Adjust with a qualified professional if you have medical or dietary needs.</p>
+    </div>
+  </section>
+</div>
+
+<nav>
+  <button class="secondary" onclick="show('home')">Home</button>
+  <button class="secondary" onclick="showAdd()">Add food</button>
+  <button class="secondary" onclick="show('profile')">Profile</button>
+</nav>
+
+<script>
+const foods=[
+{name:"Egg",kcal:70,p:6,c:0.6,f:5,unit:"1 egg"},
+{name:"Cooked rice",kcal:130,p:2.7,c:28,f:.3,unit:"100 g"},
+{name:"Chicken breast",kcal:165,p:31,c:0,f:3.6,unit:"100 g"},
+{name:"Fish",kcal:120,p:22,c:0,f:4,unit:"100 g"},
+{name:"Sardine / Mathi",kcal:208,p:25,c:0,f:11,unit:"100 g"},
+{name:"Dal / Parippu",kcal:115,p:9,c:20,f:1,unit:"100 g cooked"},
+{name:"Chickpeas / Kadala",kcal:164,p:9,c:27,f:2.6,unit:"100 g cooked"},
+{name:"Green gram / Cherupayar",kcal:105,p:7,c:19,f:.4,unit:"100 g cooked"},
+{name:"Soy chunks",kcal:120,p:16,c:10,f:.5,unit:"50 g dry"},
+{name:"Milk",kcal:60,p:3.2,c:4.8,f:3.3,unit:"100 ml"},
+{name:"Curd",kcal:60,p:3.5,c:4.7,f:3,unit:"100 g"},
+{name:"Paneer",kcal:265,p:18,c:6,f:20,unit:"100 g"},
+{name:"Peanuts",kcal:567,p:26,c:16,f:49,unit:"100 g"},
+{name:"Banana",kcal:89,p:1.1,c:23,f:.3,unit:"100 g"},
+{name:"Apple",kcal:52,p:.3,c:14,f:.2,unit:"100 g"},
+{name:"Orange",kcal:47,p:.9,c:12,f:.1,unit:"100 g"},
+{name:"Chapati",kcal:120,p:3.5,c:18,f:3,unit:"1 chapati"},
+{name:"Dosa",kcal:170,p:4,c:25,f:6,unit:"1 dosa"},
+{name:"Idli",kcal:60,p:2,c:12,f:.5,unit:"1 idli"},
+{name:"Puttu",kcal:180,p:4,c:34,f:2,unit:"100 g"},
+{name:"Appam",kcal:120,p:2,c:23,f:2,unit:"1 appam"},
+{name:"Oats",kcal:389,p:17,c:66,f:7,unit:"100 g dry"},
+{name:"Potato",kcal:77,p:2,c:17,f:.1,unit:"100 g"},
+{name:"Tomato",kcal:18,p:.9,c:3.9,f:.2,unit:"100 g"},
+{name:"Carrot",kcal:41,p:.9,c:10,f:.2,unit:"100 g"},
+{name:"Biryani",kcal:180,p:7,c:24,f:7,unit:"100 g (varies by recipe)"},
+{name:"Chicken curry",kcal:180,p:16,c:6,f:10,unit:"100 g (varies by recipe)"}
+];
+
+let profile=JSON.parse(localStorage.getItem("nt_profile")||"null")||{age:19,gender:"male",height:170,weight:85,activity:1.2,goal:"loss",calories:1800,protein:120};
+let today=JSON.parse(localStorage.getItem("nt_today")||"[]");
+let selected=null;
+
+function save(){localStorage.setItem("nt_profile",JSON.stringify(profile));localStorage.setItem("nt_today",JSON.stringify(today))}
+function show(id){document.querySelectorAll("section").forEach(x=>x.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");if(id==="home")updateHome();if(id==="profile")loadProfile()}
+function showAdd(){show("add");renderFoods()}
+
+function calculate(){
+ const w=+profile.weight,h=+profile.height,a=+profile.age;
+ let bmr=profile.gender==="male"?(10*w+6.25*h-5*a+5):(10*w+6.25*h-5*a-161);
+ let t=bmr*+profile.activity;
+ if(profile.goal==="loss")t-=400;
+ if(profile.goal==="gain")t+=300;
+ profile.calories=Math.max(1200,Math.round(t));
+ profile.protein=Math.round(w*1.4);
+}
+function saveProfile(){
+ profile.age=+document.getElementById("age").value||19;
+ profile.gender=document.getElementById("gender").value;
+ profile.height=+document.getElementById("height").value||170;
+ profile.weight=+document.getElementById("weight").value||85;
+ profile.activity=+document.getElementById("activity").value;
+ profile.goal=document.getElementById("goal").value;
+ calculate();save();updateHome();loadProfile();alert("Profile saved!");
+}
+function loadProfile(){
+ document.getElementById("age").value=profile.age;document.getElementById("gender").value=profile.gender;
+ document.getElementById("height").value=profile.height;document.getElementById("weight").value=profile.weight;
+ document.getElementById("activity").value=profile.activity;document.getElementById("goal").value=profile.goal;
+ document.getElementById("targetDisplay").textContent=profile.calories+" kcal";
+ document.getElementById("proteinDisplay").textContent=profile.protein+" g";
+}
+function totals(){
+ return today.reduce((a,x)=>({k:a.k+x.kcal,p:a.p+x.p}),{k:0,p:0});
+}
+function updateHome(){
+ const t=totals(), goal=profile.calories;
+ document.getElementById("calNow").textContent=Math.round(t.k);
+ document.getElementById("calGoal").textContent=goal;
+ document.getElementById("proteinNow").textContent=Math.round(t.p)+" g";
+ document.getElementById("proteinGoal").textContent="Goal "+profile.protein+" g";
+ document.getElementById("calRemain").textContent=Math.max(0,Math.round(goal-t.k))+" kcal remaining";
+ document.getElementById("calBar").style.width=Math.min(100,t.k/goal*100)+"%";
+ const bmi=profile.weight/Math.pow(profile.height/100,2);
+ document.getElementById("bmi").textContent=bmi.toFixed(1);
+ document.getElementById("bmiText").textContent=bmi<18.5?"Below usual range":bmi<25?"Usual range":bmi<30?"Overweight range":"Obesity range";
+ const box=document.getElementById("todayFood");
+ box.innerHTML=today.length?today.map((x,i)=>`<div class="food"><div class="row"><div><strong>${x.name}</strong><div class="small">${x.qty} × ${x.unit}</div></div><div style="text-align:right">${Math.round(x.kcal)} kcal<br><button class="secondary" style="padding:5px 8px;margin-top:4px" onclick="removeFood(${i})">Remove</button></div></div></div>`).join(""):"<div class='muted'>No food added yet.</div>";
+}
+function renderFoods(){
+ const q=(document.getElementById("search")?.value||"").toLowerCase();
+ const list=foods.filter(f=>f.name.toLowerCase().includes(q)).slice(0,30);
+ document.getElementById("foodList").innerHTML=list.map((f,i)=>`<div class="food" onclick="selectFood(${foods.indexOf(f)})"><div class="row"><div><strong>${f.name}</strong><div class="small">${f.unit}</div></div><span class="badge">${f.kcal} kcal</span></div></div>`).join("");
+}
+function selectFood(i){
+ selected=foods[i];document.getElementById("quantityBox").classList.remove("hidden");
+ document.getElementById("selectedName").textContent=selected.name;
+ document.getElementById("selectedInfo").textContent=`Per ${selected.unit}: ${selected.kcal} kcal • ${selected.p} g protein`;
+ document.getElementById("qty").value=1;
+}
+function confirmFood(){
+ if(!selected)return;
+ const q=Math.max(.1,+document.getElementById("qty").value||1);
+ today.push({name:selected.name,qty:q,unit:selected.unit,kcal:selected.kcal*q,p:selected.p*q});
+ save();show("home");
+}
+function removeFood(i){today.splice(i,1);save();updateHome()}
+calculate();save();updateHome();loadProfile();
+</script>
+</body>
+</html>
